@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Deteksi Tangan - Rapi & Responsif</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      color: #333;
+    }
+
+    #container {
+      position: relative;
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+
+    #video {
+      width: 800px;
+      height: 600px;
+      border-radius: 16px;
+      border: 2px solid #222;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      background-color: #000;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .button-group {
+      margin-top: 25px;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 12px 28px;
+      border-radius: 8px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 850px) {
+      #video {
+        width: 100%;
+        height: auto;
+      }
+      canvas {
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Deteksi Tangan</h2>
+
+  <div id="container">
+    <video id="video" playsinline muted></video>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="button-group">
+    <button id="toggleBtn" onclick="toggleCamera()">Mulai Kamera</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handtrackjs/dist/handtrack.min.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const toggleBtn = document.getElementById('toggleBtn');
+
+    let model = null;
+    let isVideo = false;
+
+    const params = {
+      flipHorizontal: true,
+      maxNumBoxes: 3,
+      iouThreshold: 0.5,
+      scoreThreshold: 0.6
+    };
+
+    // Load model AI saat halaman dimuat
+    handTrack.load(params).then(lmodel => {
+      model = lmodel;
+      console.log("Model siap digunakan.");
+    });
+
+    function toggleCamera() {
+      if (!isVideo) {
+        handTrack.startVideo(video).then(status => {
+          if (status) {
+            isVideo = true;
+            toggleBtn.textContent = "Matikan Kamera";
+            video.play();
+            runDetection();
+          } else {
+            alert("Izinkan akses kamera untuk menjalankan aplikasi ini.");
+          }
+        });
+      } else {
+        handTrack.stopVideo(video);
+        isVideo = false;
+        toggleBtn.textContent = "Mulai Kamera";
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function runDetection() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const detectLoop = () => {
+        if (!isVideo) return;
+
+        model.detect(video).then(predictions => {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          model.renderPredictions(predictions, canvas, context, video);
+          requestAnimationFrame(detectLoop);
+        });
+      };
+
+      detectLoop();
+    }
+  </script>
+
+</body>
+</html>

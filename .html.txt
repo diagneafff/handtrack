@@ -1,0 +1,58 @@
+!DOCTYPE html
+html lang=en
+head
+  meta charset=UTF-8
+  titleHandtrack.js Demotitle
+head
+body
+  h2Deteksi Tanganh2
+
+  video id=video width=500 height=375 autoplayvideo
+  br
+  button onclick=startVideo()Mulai Kamerabutton
+  button onclick=stopVideo()Berhentibutton
+
+  script src=httpscdn.jsdelivr.netnpmhandtrackjsdisthandtrack.min.jsscript
+  script
+    const video = document.getElementById('video');
+    let model = null;
+    let isVideo = false;
+
+    const params = {
+      flipHorizontal true,
+      maxNumBoxes 2,
+      scoreThreshold 0.6,
+    };
+
+    function startVideo() {
+      handTrack.startVideo(video).then(status = {
+        if (status) {
+          isVideo = true;
+          runDetection();
+        } else {
+          alert(Izinkan akses kamera ya);
+        }
+      });
+    }
+
+    function stopVideo() {
+      handTrack.stopVideo(video);
+      isVideo = false;
+    }
+
+    function runDetection() {
+      model.detect(video).then(predictions = {
+        console.clear();
+        console.log(Prediksi, predictions);
+        if (isVideo) {
+          requestAnimationFrame(runDetection);
+        }
+      });
+    }
+
+    handTrack.load(params).then(lmodel = {
+      model = lmodel;
+    });
+  script
+body
+html
